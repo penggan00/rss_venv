@@ -58,19 +58,9 @@ jobs:
       run: tar -czf rss_venv.tar.gz rss_venv
 
     - name: Publish to Release
-      run: |
-        TAG="venv-$(date +%Y%m%d-%H%M%S)"
-        echo "TAG=$TAG" >> $GITHUB_ENV
-        # 用 GITHUB_TOKEN 打 tag 并创建 release（Alpine 里没有 gh，直接用 curl 调 API）
-        curl -sSL -X POST \
-          -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-          -H "Accept: application/vnd.github+json" \
-          https://api.github.com/repos/${{ github.repository }}/releases \
-          -d "{\"tag_name\":\"$TAG\",\"name\":\"$TAG\",\"draft\":false,\"prerelease\":false}"
-        # 上传 asset
-        UPLOAD_URL="https://uploads.github.com/repos/${{ github.repository }}/releases/tags/$TAG/assets?name=rss_venv.tar.gz"
-        curl -sSL -X POST \
-          -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-          -H "Content-Type: application/gzip" \
-          --data-binary @rss_venv.tar.gz \
-          "$UPLOAD_URL"
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: venv-${{ github.run_number }}
+        name: venv-${{ github.run_number }}
+        files: rss_venv.tar.gz
+        token: ${{ secrets.GITHUB_TOKEN }}
